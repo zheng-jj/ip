@@ -11,7 +11,16 @@ public class Task {
         return (isDone ? "X" : " "); // mark done task with X
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public void toggleStatus() {
         this.isDone = !this.isDone;
+    }
+
+    @Override
+    public String toString() {
+        return "[T][" + getStatusIcon() + "] " + getDescription();
     }
 }
