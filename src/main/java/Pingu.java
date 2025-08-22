@@ -9,31 +9,39 @@ public class Pingu {
                 EVENT
     }
 
-    public static Task createTask(Tasks taskType, String taskString) {
+    public static Task createTask(Tasks taskType, String taskString, String divider) {
         String[] taskData = null;
-        switch (taskType) {
-            case TODO:
-                System.out.println("Got it. I've added this task:");
-                Task newTodo = new Task(taskString.substring(5));
-                System.out.println(newTodo.toString());
-                return newTodo;
-            case DEADLINE:
-                System.out.println("Got it. I've added this task:");
-                taskData = taskString.substring(9).split(" /by ");
-                Deadline newDeadline = new Deadline(taskData[0], taskData[1]);
-                System.out.println(newDeadline.toString());
-                return newDeadline;
-            case EVENT:
-                System.out.println("Got it. I've added this task:");
-                taskData = taskString.substring(6).split(" /to | /from ");
-                Event newEvent = new Event(taskData[0], taskData[1], taskData[2]);
-                System.out.println(newEvent.toString());
-                return newEvent;
-            default:
-                System.out.println("Got it. I've added this task:");
-                Task newTask = new Task(taskString.substring(5));
-                System.out.println(newTask.toString());
-                return newTask;
+        try {
+            switch (taskType) {
+                case TODO:
+                    Task newTodo = new Task(taskString.substring(5));
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println(newTodo.toString());
+                    return newTodo;
+                case DEADLINE:
+                    taskData = taskString.substring(9).split(" /by ");
+                    Deadline newDeadline = new Deadline(taskData[0], taskData[1]);
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println(newDeadline.toString());
+                    return newDeadline;
+                case EVENT:
+                    taskData = taskString.substring(6).split(" /to | /from ");
+                    Event newEvent = new Event(taskData[0], taskData[1], taskData[2]);
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println(newEvent.toString());
+                    return newEvent;
+                default:
+                    Task newTask = new Task(taskString.substring(5));
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println(newTask.toString());
+                    return newTask;
+            }
+        } catch (StringIndexOutOfBoundsException e) {
+            printMsg("Invalid task details. Try again.", divider);
+            return null;
+        } catch (Exception e) {
+            printMsg("Error: " + e.toString(), divider);
+            return null;
         }
     }
 
@@ -96,17 +104,25 @@ public class Pingu {
                     System.out.println(e);
                 }
             } else if (firstWord.equals("event")) {
-                Event newTask = (Event) createTask(Tasks.EVENT, input);
-                taskList.add(newTask);
-                printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                Event newTask = (Event) createTask(Tasks.EVENT, input, divider);
+                if (newTask != null) {
+                    taskList.add(newTask);
+                    printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                }
             } else if (firstWord.equals("deadline")) {
-                Deadline newTask = (Deadline) createTask(Tasks.DEADLINE, input);
-                taskList.add(newTask);
-                printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                Deadline newTask = (Deadline) createTask(Tasks.DEADLINE, input, divider);
+                if (newTask != null) {
+                    taskList.add(newTask);
+                    printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                }
             } else if (firstWord.equals("todo")) {
-                Task newTask = createTask(Tasks.TODO, input);
-                taskList.add(newTask);
-                printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                Task newTask = createTask(Tasks.TODO, input, divider);
+                if (newTask != null) {
+                    taskList.add(newTask);
+                    printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                }
+            } else {
+                printMsg("OOPS!!! I'm sorry, but I don't know what that means :-(", divider);
             }
         }
     }
