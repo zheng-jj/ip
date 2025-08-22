@@ -103,6 +103,17 @@ public class Pingu {
                 } catch (Exception e) {
                     System.out.println(e);
                 }
+            } else if (firstWord.equals("delete")) {
+                String potentialNum = inputSplit[inputSplit.length - 1];
+                try {
+                    int index = Integer.parseInt(potentialNum) - 1;
+                    System.out.println("Noted. I've removed this task:");
+                    System.out.println(taskList.get(index).toString());
+                    taskList.remove(index);
+                    printMsg("Now you have " + taskList.size() + " tasks in the list.", divider);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
             } else if (firstWord.equals("event")) {
                 Event newTask = (Event) createTask(Tasks.EVENT, input, divider);
                 if (newTask != null) {
