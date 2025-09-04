@@ -19,6 +19,16 @@ public class Task {
         this.isDone = !this.isDone;
     }
 
+    /**
+     * Returns a string representation of the task for saving to a file.
+     * Format: T | 1/0 | description
+     *
+     * @return A formatted string for file storage.
+     */
+    public String toFileString() {
+        return "T | " + (isDone ? "1" : "0") + " | " + this.description;
+    }
+
     @Override
     public String toString() {
         return "[T][" + getStatusIcon() + "] " + getDescription();
