@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -18,66 +21,73 @@ public class Pingu {
     }
 
     public static Task createTask(Tasks taskType, String taskString, String divider) {
-        String[] taskData;
-        try {
-            switch (taskType) {
-                case TODO:
-                    String todoDescription = taskString.substring(5);
-                    if (todoDescription.trim().isEmpty()) {
-                        throw new StringIndexOutOfBoundsException();
-                    }
-                    Task newTodo = new Task(todoDescription);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(newTodo.toString());
-                    return newTodo;
-                case DEADLINE:
-                    taskData = taskString.substring(9).split(" /by ");
-                    if (taskData.length < 2 || taskData[0].trim().isEmpty() || taskData[1].trim().isEmpty()) {
-                        throw new StringIndexOutOfBoundsException();
-                    }
-                    Deadline newDeadline = new Deadline(taskData[0], taskData[1]);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(newDeadline.toString());
-                    return newDeadline;
-                case EVENT:
-                    taskData = taskString.substring(6).split(" /from | /to ");
-                    if (taskData.length < 3 || taskData[0].trim().isEmpty() || taskData[1].trim().isEmpty()
-                            || taskData[2].trim().isEmpty()) {
-                        throw new StringIndexOutOfBoundsException();
-                    }
-                    Event newEvent = new Event(taskData[0], taskData[1], taskData[2]);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println(newEvent.toString());
-                    return newEvent;
-                default:
-                    return null;
-            }
-        } catch (StringIndexOutOfBoundsException | ArrayIndexOutOfBoundsException e) {
-            printMsg("Invalid task details. Try again.", divider);
-            return null;
-        } catch (Exception e) {
-            printMsg("Error: " + e.toString(), divider);
-            return null;
-        }
-    }
-    /**
- * Saves the current list of tasks to the data file.
- *
- * @param taskList The list of tasks to save.
- */
-public static void saveTasks(ArrayList<Task> taskList) {
+    String[] taskData;
     try {
-        // Ensure the parent directory exists
-        Files.createDirectories(DATA_FILE_PATH.getParent());
-        FileWriter writer = new FileWriter(DATA_FILE_PATH.toFile());
-        for (Task task : taskList) {
-            writer.write(task.toFileString() + "\n");
+        switch (taskType) {
+            case TODO:
+                String todoDescription = taskString.substring(5);
+                if (todoDescription.trim().isEmpty()) {
+                    throw new StringIndexOutOfBoundsException();
+                }
+                Task newTodo = new Task(todoDescription);
+                System.out.println("Got it. I've added this task:");
+                System.out.println(newTodo.toString());
+                return newTodo;
+                
+            case DEADLINE:
+                taskData = taskString.substring(9).split(" /by ");
+                if (taskData.length < 2 || taskData[0].trim().isEmpty() || taskData[1].trim().isEmpty()) {
+                    throw new StringIndexOutOfBoundsException();
+                }
+                Deadline newDeadline = new Deadline(taskData[0], taskData[1]);
+                System.out.println("Got it. I've added this task:");
+                System.out.println(newDeadline.toString());
+                return newDeadline;
+                
+            case EVENT:
+                taskData = taskString.substring(6).split(" /from | /to ");
+                if (taskData.length < 3 || taskData[0].trim().isEmpty() || 
+                    taskData[1].trim().isEmpty() || taskData[2].trim().isEmpty()) {
+                    throw new StringIndexOutOfBoundsException();
+                }
+                Event newEvent = new Event(taskData[0], taskData[1], taskData[2]);
+                System.out.println("Got it. I've added this task:");
+                System.out.println(newEvent.toString());
+                return newEvent;
+                
+            default:
+                return null;
         }
-        writer.close();
-    } catch (IOException e) {
-        System.out.println("An error occurred while saving tasks: " + e.getMessage());
+    } catch (DateTimeParseException e) {
+        printMsg("Invalid date format. Please use d/M/yyyy HHmm format (e.g., 2/12/2019 1800).", divider);
+        return null;
+    } catch (StringIndexOutOfBoundsException | ArrayIndexOutOfBoundsException e) {
+        printMsg("Invalid task details. Try again.", divider);
+        return null;
+    } catch (Exception e) {
+        printMsg("Error: " + e.toString(), divider);
+        return null;
     }
 }
+
+    /**
+     * Saves the current list of tasks to the data file.
+     *
+     * @param taskList The list of tasks to save.
+     */
+    public static void saveTasks(ArrayList<Task> taskList) {
+        try {
+            // Ensure the parent directory exists
+            Files.createDirectories(DATA_FILE_PATH.getParent());
+            FileWriter writer = new FileWriter(DATA_FILE_PATH.toFile());
+            for (Task task : taskList) {
+                writer.write(task.toFileString() + "\n");
+            }
+            writer.close();
+        } catch (IOException e) {
+            System.out.println("An error occurred while saving tasks: " + e.getMessage());
+        }
+    }
 
     /**
      * Loads tasks from the data file into the task list.
@@ -88,54 +98,50 @@ public static void saveTasks(ArrayList<Task> taskList) {
     public static ArrayList<Task> loadTasks() {
         ArrayList<Task> taskList = new ArrayList<>();
         File dataFile = DATA_FILE_PATH.toFile();
-
+        DateTimeFormatter fileFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        
         try {
-            // Create directory if it doesn't exist
             if (!Files.exists(DATA_FILE_PATH.getParent())) {
                 Files.createDirectories(DATA_FILE_PATH.getParent());
             }
-            // Create file if it doesn't exist
+            
             if (!dataFile.exists()) {
                 dataFile.createNewFile();
-                return taskList; // Return empty list if no file existed
+                return taskList;
             }
-
+            
             Scanner fileScanner = new Scanner(dataFile);
             while (fileScanner.hasNext()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(" \\| ");
-
                 try {
                     String type = parts[0];
                     boolean isDone = parts[1].equals("1");
                     String description = parts[2];
                     Task task = null;
-
+                    
                     switch (type) {
-                    case "T":
-                        task = new Task(description);
-                        break;
-                    case "D":
-                        // File format: D | status | description | by
-                        String by = parts[3];
-                        task = new Deadline(description, by);
-                        break;
-                    case "E":
-                        // File format: E | status | description | from | to
-                        String from = parts[3];
-                        String to = parts[4];
-                        task = new Event(description, from, to);
-                        break;
+                        case "T":
+                            task = new Task(description);
+                            break;
+                        case "D":
+                            LocalDateTime by = LocalDateTime.parse(parts[3], fileFormat);
+                            task = new Deadline(description, by);
+                            break;
+                        case "E":
+                            LocalDateTime from = LocalDateTime.parse(parts[3], fileFormat);
+                            LocalDateTime to = LocalDateTime.parse(parts[4], fileFormat);
+                            task = new Event(description, from, to);
+                            break;
                     }
-
+                    
                     if (task != null) {
                         if (isDone) {
                             task.toggleStatus();
                         }
                         taskList.add(task);
                     }
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    // Handle corrupted line
+                } catch (ArrayIndexOutOfBoundsException | DateTimeParseException e) {
                     System.out.println("Warning: Skipping corrupted or malformed task line in data file: " + line);
                 }
             }
@@ -143,6 +149,7 @@ public static void saveTasks(ArrayList<Task> taskList) {
         } catch (IOException e) {
             System.out.println("Error loading tasks from file: " + e.getMessage());
         }
+        
         return taskList;
     }
 
