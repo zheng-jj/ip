@@ -72,6 +72,40 @@ public class TaskList {
     }
 
     /**
+     * Finds tasks that contain the given keyword in their description.
+     * 
+     * @param keyword The keyword to search for.
+     * @return A list of tasks containing the keyword.
+     */
+    public ArrayList<Task> findTasks(String keyword) {
+        ArrayList<Task> matchingTasks = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(keyword.toLowerCase())) {
+                matchingTasks.add(task);
+            }
+        }
+        return matchingTasks;
+    }
+
+    /**
+     * Generates a formatted string of matching tasks for display.
+     * 
+     * @param matchingTasks The list of matching tasks.
+     * @return A formatted string for display.
+     */
+    public String getMatchingTasksString(ArrayList<Task> matchingTasks) {
+        if (matchingTasks.isEmpty()) {
+            return "No matching tasks found.";
+        }
+        
+        StringBuilder sb = new StringBuilder("Here are the matching tasks in your list:\n");
+        for (int i = 0; i < matchingTasks.size(); i++) {
+            sb.append(i + 1).append(".").append(matchingTasks.get(i).toString()).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    /**
      * Returns the current number of tasks in the list.
      *
      * @return The size of the task list.

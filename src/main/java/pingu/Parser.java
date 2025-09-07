@@ -33,6 +33,8 @@ public class Parser {
                 return new DeleteCommand(parseTaskIndex(parts));
             case "todo":
                 return new AddCommand(parseTodo(parts));
+            case "find":
+                return new FindCommand(parseKeyword(parts));
             case "deadline":
                 return new AddCommand(parseDeadline(parts));
             case "event":
@@ -58,6 +60,13 @@ public class Parser {
         }
     }
     
+    private static String parseKeyword(String[] parts) throws PinguException {
+        if (parts.length < 2 || parts[1].trim().isEmpty()) {
+            throw new PinguException("Please specify a keyword to search for.");
+        }
+        return parts[1].trim();
+    }
+
     private static Task parseTodo(String[] parts) throws PinguException {
         if (parts.length < 2 || parts[1].trim().isEmpty()) {
             throw new PinguException("The description of a todo cannot be empty.");
